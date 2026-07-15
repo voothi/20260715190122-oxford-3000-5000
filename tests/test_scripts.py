@@ -11,7 +11,7 @@ import unittest
 import importlib
 
 # Add the sibling scripts directory to the python path
-scripts_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "20260715190726"))
+scripts_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "scripts"))
 sys.path.insert(0, scripts_dir)
 
 class TestOxfordScripts(unittest.TestCase):
