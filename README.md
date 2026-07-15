@@ -1,4 +1,4 @@
-# Oxford 3000/5000 Wordlist Curation & Caching Pipeline
+# The Oxford 3000/5000 Wordlist Curation & Caching Pipeline
 
 [![Version](https://img.shields.io/badge/version-v1.0.0-blue)](https://github.com/voothi/20260715190122-oxford-3000-5000)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
