@@ -7,8 +7,6 @@ A specialized data curation project designed to produce highly accurate, clean, 
 
 The official lists are based on the [Oxford Learner's Dictionaries Wordlists](https://www.oxfordlearnersdictionaries.com/wordlists/).
 
----
-
 ## Table of Contents
 - [Project Goal](#project-goal)
 - [AI Workflow & History](#ai-workflow--history)
