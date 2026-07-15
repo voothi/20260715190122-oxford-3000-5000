@@ -12,7 +12,6 @@ The official lists are based on the [Oxford Learner's Dictionaries Wordlists](ht
 ## Table of Contents
 - [Project Goal](#project-goal)
 - [AI Workflow & History](#ai-workflow--history)
-- [Prompt Logs](#prompt-logs)
 - [Project Structure](#project-structure)
 - [Data Modeling & Format Patterns](#data-modeling--format-patterns)
   - [1. Single CEFR Level Pattern](#1-single-cefr-level-pattern)
@@ -29,7 +28,7 @@ The official lists are based on the [Oxford Learner's Dictionaries Wordlists](ht
 ## Project Goal
 The primary objective of this project is to compile, sanitize, and verify the Oxford 3000 and Oxford 5000 wordlists to a high standard of accuracy. This includes normalizing part-of-speech tags, separating homonym sense indexes (like `can1` $\rightarrow$ Word: `can`, Value: `1`), and structuring CEFR levels (A1–C1) into separate columns. The processing scripts and verification tests are packaged with the data to support future adjustments and reproducibility.
 
----
+[Return to Top](#oxford-30005000-wordlist-curation--caching-pipeline)
 
 ## AI Workflow & History
 These datasets were curated and verified in partnership with **Gemini Chat in Pro (Extended) mode (Gemini 3.1 Pro)**. The process evolved through the following stages:
@@ -54,7 +53,7 @@ Below are the exact historical prompts used during the curation process:
 20260715171247 Compare 2 files. A file created by AI and a file that I manually copied from the PDF. Output the final list by correcting the AI file.
 ```
 
----
+[Return to Top](#oxford-30005000-wordlist-curation--caching-pipeline)
 
 ## Project Structure
 ```text
@@ -84,7 +83,7 @@ U:\voothi\20260715190122-oxford-3000-5000\
 └── README.md                              # Project documentation
 ```
 
----
+[Return to Top](#oxford-30005000-wordlist-curation--caching-pipeline)
 
 ## Data Modeling & Format Patterns
 
@@ -103,7 +102,7 @@ If a word has multiple parts of speech, each associated with distinct CEFR level
 > [!NOTE]
 > This dual approach preserves the precise mapping of which level belongs to which part of speech for complex entries while maintaining clean, separate columns for simple ones.
 
----
+[Return to Top](#oxford-30005000-wordlist-curation--caching-pipeline)
 
 ## Pipelines & Scripts Details
 
@@ -119,14 +118,14 @@ If a word has multiple parts of speech, each associated with distinct CEFR level
 5.  **`5_verify_pos_level.py`:**
     *   *Operation:* Aligns the target TSV and raw copy-pasted inputs on clean keys, performing an automated comparison check across the Part of Speech and Level columns to catch formatting discrepancies and missing definitions.
 
----
+[Return to Top](#oxford-30005000-wordlist-curation--caching-pipeline)
 
 ## Test Fixtures & Archives
 The files inside `tests/fixtures/` serve as:
 1.  **Archival Snapshots:** They record the exact intermediate outputs (like words-only outputs `-wo.en.tsv` and corrected drafts `-corrected.tsv`) of the processing stages.
 2.  **Test Fixtures:** They are used as static inputs and expected baseline comparisons for integration validation.
 
----
+[Return to Top](#oxford-30005000-wordlist-curation--caching-pipeline)
 
 ## Usage
 
@@ -142,7 +141,9 @@ To run the alignment validator between the target TSV and raw copy-paste TSV:
 python U:\voothi\20260715190122-oxford-3000-5000\scripts\5_verify_pos_level.py
 ```
 
----
+[Return to Top](#oxford-30005000-wordlist-curation--caching-pipeline)
 
 ## License
 MIT License. See `LICENSE` for details.
+
+[Return to Top](#oxford-30005000-wordlist-curation--caching-pipeline)
