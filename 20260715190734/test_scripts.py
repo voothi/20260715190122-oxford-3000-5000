@@ -74,7 +74,7 @@ class TestOxfordScripts(unittest.TestCase):
         self.assertEqual(lvl, "A1")
 
     def test_clean_key(self):
-        clean_k = self.m4.clean_key
+        clean_k = self.m5.clean_key
         self.assertEqual(clean_k("content²"), "content")
         self.assertEqual(clean_k("bow'"), "bow")
         self.assertEqual(clean_k("well-being"), "wellbeing")
