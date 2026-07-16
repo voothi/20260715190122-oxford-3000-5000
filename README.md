@@ -24,7 +24,7 @@ The official lists are based on the [Oxford Learner's Dictionaries Wordlists](ht
 ---
 
 ## Project Goal
-The primary objective of this project is to compile, sanitize, and verify the Oxford 3000 and Oxford 5000 wordlists to a high standard of accuracy. This includes normalizing part-of-speech tags, separating homonym sense indexes (like `can1` $\rightarrow$ Word: `can`, Value: `1`), and structuring CEFR levels (A1–C1) into separate columns. The processing scripts and verification tests are packaged with the data to support future adjustments and reproducibility.
+The primary objective of this project is to compile, sanitize, and verify the Oxford 3000 and Oxford 5000 vocabulary lists to a high standard of accuracy. This includes normalizing part-of-speech tags, extracting parenthetical annotations (like `bank (money)` $\rightarrow$ Word: `bank`, Annotation: `(money)`), separating homonym sense indexes (like `can1` $\rightarrow$ Word: `can`, Sense: `1`), and structuring CEFR levels (A1–C1) into separate columns. The processing scripts and verification tests are packaged with the data to support future adjustments and reproducibility.
 
 [Return to Top](#oxford-30005000-wordlist-curation--caching-pipeline)
 
@@ -33,7 +33,7 @@ These datasets were curated and verified in partnership with **Gemini Chat in Pr
 
 1.  **Initial OCR Attempt:** The source PDFs were initially uploaded directly to Gemini for OCR extraction and TSV formatting.
 2.  **Optimized Copy-Paste Pipeline:** To improve accuracy and resolve parsing gaps, the text was copied directly from the PDF files into intermediate flat text files, sorted, and submitted for structured comparisons.
-3.  **Algorithmic Corrections:** A suite of local Python scripts was developed to merge the files, strip formatting noise, isolate homonym digits, and format the output according to strict level formatting patterns.
+3.  **Algorithmic Corrections:** A suite of local Python scripts was developed to merge the files, strip formatting noise, isolate parenthetical annotations and homonym digits, and format the output according to strict level formatting patterns.
 
 ### Prompt Logs
 Below are the exact historical prompts used during the curation process:
@@ -57,11 +57,11 @@ Below are the exact historical prompts used during the curation process:
 ```text
 U:\voothi\20260715190122-oxford-3000-5000\
 ├── scripts/                               # Core pipeline scripts
-│   ├── 1_create_corrected_oxford_5000.py  # Merges and resolves missing A-words
+│   ├── 1_create_corrected_oxford_5000.py  # Merges and resolves missing A-words, outputs 5-column TSV
 │   ├── 2_clean_copy_paste_words.py        # Cleans raw copy-paste to word-only lists
-│   ├── 3_move_homonym_digits.py           # Moves homonym digits to a Value column
-│   ├── 4_apply_pos_level_pattern.py       # Rebuilds target TSVs under multi-level pattern
-│   └── 5_verify_pos_level.py              # Validates column alignment with copy-paste
+│   ├── 3_move_homonym_digits.py           # Extracts annotations & homonym digits to separate columns
+│   ├── 4_apply_pos_level_pattern.py       # Rebuilds target TSVs under multi-level pattern (5-column format)
+│   └── 5_verify_pos_level.py              # Validates column alignment with copy-paste (5-column format)
 ├── tests/                                 # Unit testing suite
 │   ├── test_scripts.py                    # Standard unittest test suite
 │   └── fixtures/                          # Archival data and test fixtures
@@ -74,9 +74,9 @@ U:\voothi\20260715190122-oxford-3000-5000\
 ├── .gitattributes                          # Git attributes configuration
 ├── .gitignore                              # Git ignore configuration
 ├── 20260715160822-oxford-3000.en.pdf       # Oxford 3000 source PDF
-├── 20260715160822-oxford-3000.en.tsv       # Oxford 3000 clean target TSV
+├── 20260715160822-oxford-3000.en.tsv       # Oxford 3000 clean target TSV (5-column format)
 ├── 20260715165539-oxford-5000.en.pdf       # Oxford 5000 source PDF
-├── 20260715165539-oxford-5000-expanded.en.tsv # Oxford 5000 clean target TSV
+├── 20260715165539-oxford-5000-expanded.en.tsv # Oxford 5000 clean target TSV (5-column format)
 ├── LICENSE                                # MIT license
 └── README.md                              # Project documentation
 ```
@@ -85,7 +85,14 @@ U:\voothi\20260715190122-oxford-3000-5000\
 
 ## Data Modeling & Format Patterns
 
-The pipeline maps raw parts of speech and level notations from copy-pasted PDF texts into the target TSV using two distinct patterns:
+The pipeline maps raw parts of speech and level notations from copy-pasted PDF texts into a 5-column target TSV with the following headers:
+- `Word`: The clean lowercase dictionary headword (excluding homonym numbers and parenthetical details).
+- `Annotation`: Parenthetical descriptors denoting semantic category or contextual qualifiers (e.g., `(money)`, `(river)`, `(taking time)`).
+- `Sense`: The homonym sense index number (e.g., `1`, `2`) if multiple records exist for the same headword.
+- `Part of Speech`: The word's grammatical POS tags.
+- `Level`: The word's CEFR levels.
+
+The parser handles POS and level mappings using two patterns:
 
 ### 1. Single CEFR Level Pattern
 If a word possesses only one level across all its parts of speech (or multiple parts of speech sharing a single level tag at the end, e.g., `bet v., n. B2` or `about prep., adv. A1`):
@@ -106,15 +113,15 @@ If a word has multiple parts of speech, each associated with distinct CEFR level
 
 1.  **`1_create_corrected_oxford_5000.py`:**
     *   *Input:* `20260715165539-oxford-5000-expanded.en.tsv` and raw `20260715165539-oxford-5000-expanded-copy-paste.en.tsv`.
-    *   *Operation:* Automatically identifies missing alphabetical word groups in File 1 (e.g., A-words), cleans up trailing tags, merges them, and generates a fully reconstructed, sorted target file.
+    *   *Operation:* Automatically identifies missing alphabetical word groups in File 1 (e.g., A-words), cleans up trailing tags, parses annotations and homonym sense indices using `extract_annotation_and_sense`, merges them using a composite key `(clean_key(word), annotation, sense)`, and generates a fully reconstructed, sorted target file.
 2.  **`2_clean_copy_paste_words.py`:**
     *   *Operation:* Isolates raw copy-pasted lines and strips all parts of speech tags, CEFR tags, and double spaces, outputting a clean, flat list of word names (one per line) for dictionary import validation.
 3.  **`3_move_homonym_digits.py`:**
-    *   *Operation:* Scans the Word column for trailing homonym index digits (including digits directly preceding parenthetical descriptions, e.g., `close1` or `last1 (final)`) and extracts them into a new, separate `Value` column to isolate the clean dictionary headword.
+    *   *Operation:* Scans the Word column for trailing homonym index digits and parenthetical qualifiers, extracting them into separate `Sense` and `Annotation` columns respectively to isolate the clean dictionary headword. Dynamically supports 3, 4, or 5 column inputs based on headers.
 4.  **`4_apply_pos_level_pattern.py`:**
-    *   *Operation:* Reads raw copy-pasted files and processes POS and Level formatting logic recursively to align target files with the single-level and multi-level patterns.
+    *   *Operation:* Reads raw copy-pasted files, separates parenthetical annotations, and processes POS and Level formatting logic recursively to align target files with the single-level and multi-level patterns under the 5-column structure.
 5.  **`5_verify_pos_level.py`:**
-    *   *Operation:* Aligns the target TSV and raw copy-pasted inputs on clean keys, performing an automated comparison check across the Part of Speech and Level columns to catch formatting discrepancies and missing definitions.
+    *   *Operation:* Aligns the target TSV and raw copy-pasted inputs on composite keys `(clean_key(word + annotation), sense)`, performing an automated comparison check across the Part of Speech and Level columns to catch formatting discrepancies and missing definitions.
 
 [Return to Top](#oxford-30005000-wordlist-curation--caching-pipeline)
 

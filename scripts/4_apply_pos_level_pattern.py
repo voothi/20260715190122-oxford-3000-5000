@@ -78,20 +78,36 @@ def get_parsed_pos_level_from_cp(line):
         
     return pos_col, lvl_col
 
-def extract_homonym_digit(w):
-    match = re.match(r'^([^(]*?)(\d+)(\s*\(.*\))?$', w)
+def extract_annotation_and_sense(word):
+    # First extract homonym digit
+    match = re.match(r'^([^(]*?)(\d+)(\s*\(.*\))?$', word)
     if match:
         prefix = match.group(1)
         digit = match.group(2)
         suffix = match.group(3) or ""
-        new_word = prefix.strip() + suffix
-        return new_word, digit
+        word_with_suffix = prefix.strip() + suffix
+        sense = digit
     else:
-        return w, ""
+        word_with_suffix = word.strip()
+        sense = ""
+        
+    # Now extract parenthetical annotation
+    match_ann = re.search(r'\s+(\(.*\))$', word_with_suffix)
+    if match_ann:
+        annotation = match_ann.group(1).strip()
+        clean_word = word_with_suffix[:-len(match_ann.group(0))].strip()
+    else:
+        annotation = ""
+        clean_word = word_with_suffix
+        
+    return clean_word, annotation, sense
 
 def main():
-    path_cp = r"C:\Users\voothi\Desktop\20260715160822-oxford-3000-copy-paste.en.tsv"
-    path_target = r"U:\voothi\20241223170748-kardenwort\data\en\20260715160822-oxford-3000.en.tsv"
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    repo_root = os.path.abspath(os.path.join(script_dir, ".."))
+    
+    path_cp = os.path.join(repo_root, "tests", "fixtures", "20260715160822-oxford-3000-copy-paste.en.tsv")
+    path_target = os.path.join(repo_root, "20260715160822-oxford-3000.en.tsv")
 
     print(f"Reading copy-paste file: {path_cp}")
     output_lines = []
@@ -119,21 +135,16 @@ def main():
             if not word:
                 continue
                 
-            w_norm, val = extract_homonym_digit(word)
+            w_clean, annotation, val = extract_annotation_and_sense(word)
             pos_col, lvl_col = get_parsed_pos_level_from_cp(line)
             
-            output_lines.append((w_norm, val, pos_col, lvl_col))
+            output_lines.append((w_clean, annotation, val, pos_col, lvl_col))
             processed_count += 1
 
-    # Load and preserve header of target file
-    with open(path_target, "r", encoding="utf-8") as f:
-        lines = f.readlines()
-    header = lines[0]
-    
     # Reconstruct target file lines in the order they appear in copy-paste
-    new_lines = [header]
-    for w, val, pos, lvl in output_lines:
-        new_lines.append(f"{w}\t{val}\t{pos}\t{lvl}\n")
+    new_lines = ["Word\tAnnotation\tSense\tPart of Speech\tLevel\n"]
+    for w, ann, val, pos, lvl in output_lines:
+        new_lines.append(f"{w}\t{ann}\t{val}\t{pos}\t{lvl}\n")
         
     with open(path_target, "w", encoding="utf-8") as f:
         f.writelines(new_lines)

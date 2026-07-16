@@ -50,6 +50,14 @@ class TestOxfordScripts(unittest.TestCase):
         self.assertEqual(extract_fn("second1 (next after the first)"), ("second (next after the first)", "1"))
         self.assertEqual(extract_fn("about"), ("about", ""))
 
+    def test_extract_annotation_and_sense(self):
+        fn = self.m1.extract_annotation_and_sense
+        self.assertEqual(fn("bank (money)"), ("bank", "(money)", ""))
+        self.assertEqual(fn("last1 (final)"), ("last", "(final)", "1"))
+        self.assertEqual(fn("can1"), ("can", "", "1"))
+        self.assertEqual(fn("second1 (next after the first)"), ("second", "(next after the first)", "1"))
+        self.assertEqual(fn("about"), ("about", "", ""))
+
     def test_pos_level_parsing_pattern(self):
         get_pattern_fn = self.m4.get_parsed_pos_level_from_cp
         

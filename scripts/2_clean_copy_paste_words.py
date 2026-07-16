@@ -79,8 +79,9 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         target_path = sys.argv[1]
     else:
-        # Default target path
-        target_path = r"C:\Users\voothi\Desktop\20260715160822-oxford-3000-copy-paste-wo.en.tsv"
+        # Default target path relative to script directory
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        target_path = os.path.abspath(os.path.join(script_dir, "..", "tests", "fixtures", "20260715160822-oxford-3000-copy-paste-wo.en.tsv"))
     
     print(f"Processing target path: {target_path}")
     process_file(target_path)

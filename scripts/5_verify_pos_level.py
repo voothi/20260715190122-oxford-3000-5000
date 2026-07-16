@@ -73,16 +73,29 @@ def get_parsed_pos_level_from_cp(line):
         
     return pos_col, lvl_col
 
-def extract_homonym_digit(w):
-    match = re.match(r'^([^(]*?)(\d+)(\s*\(.*\))?$', w)
+def extract_annotation_and_sense(word):
+    # First extract homonym digit
+    match = re.match(r'^([^(]*?)(\d+)(\s*\(.*\))?$', word)
     if match:
         prefix = match.group(1)
         digit = match.group(2)
         suffix = match.group(3) or ""
-        new_word = prefix.strip() + suffix
-        return new_word, digit
+        word_with_suffix = prefix.strip() + suffix
+        sense = digit
     else:
-        return w, ""
+        word_with_suffix = word.strip()
+        sense = ""
+        
+    # Now extract parenthetical annotation
+    match_ann = re.search(r'\s+(\(.*\))$', word_with_suffix)
+    if match_ann:
+        annotation = match_ann.group(1).strip()
+        clean_word = word_with_suffix[:-len(match_ann.group(0))].strip()
+    else:
+        annotation = ""
+        clean_word = word_with_suffix
+        
+    return clean_word, annotation, sense
 
 def clean_key(w):
     w = w.lower().strip()
@@ -92,10 +105,23 @@ def clean_key(w):
     return w
 
 def main():
-    path_cp = r"C:\Users\voothi\Desktop\20260715160822-oxford-3000-copy-paste.en.tsv"
-    path_target = r"U:\voothi\20241223170748-kardenwort\data\en\20260715160822-oxford-3000.en.tsv"
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    repo_root = os.path.abspath(os.path.join(script_dir, ".."))
+    
+    if len(sys.argv) > 2:
+        path_target = sys.argv[1]
+        path_cp = sys.argv[2]
+    elif len(sys.argv) > 1:
+        path_target = sys.argv[1]
+        if "5000" in path_target:
+            path_cp = os.path.join(repo_root, "tests", "fixtures", "20260715165539-oxford-5000-expanded-copy-paste.en.tsv")
+        else:
+            path_cp = os.path.join(repo_root, "tests", "fixtures", "20260715160822-oxford-3000-copy-paste.en.tsv")
+    else:
+        path_cp = os.path.join(repo_root, "tests", "fixtures", "20260715160822-oxford-3000-copy-paste.en.tsv")
+        path_target = os.path.join(repo_root, "20260715160822-oxford-3000.en.tsv")
 
-    print("Loading copy-paste file...")
+    print(f"Loading copy-paste file from {path_cp}...")
     cp_db = {}
     with open(path_cp, "r", encoding="utf-8") as f:
         for lno, line in enumerate(f, 1):
@@ -114,12 +140,13 @@ def main():
                 else:
                     word = clean_word_designations(line[:match.start()])
             if word:
-                w_norm, val = extract_homonym_digit(word)
-                k = (clean_key(w_norm), val)
+                w_clean, annotation, val = extract_annotation_and_sense(word)
+                word_with_ann = f"{w_clean} {annotation}".strip()
+                k = (clean_key(word_with_ann), val)
                 pos_col, lvl_col = get_parsed_pos_level_from_cp(line)
                 cp_db[k] = (pos_col, lvl_col, lno, line)
 
-    print("Loading target file...")
+    print(f"Loading target file from {path_target}...")
     with open(path_target, "r", encoding="utf-8") as f:
         lines = f.readlines()
 
@@ -130,13 +157,15 @@ def main():
             continue
         parts = stripped.split("\t")
         word = parts[0]
-        sense = parts[1] if len(parts) > 1 else ""
-        pos = parts[2] if len(parts) > 2 else ""
-        lvl = parts[3] if len(parts) > 3 else ""
+        annotation = parts[1] if len(parts) > 1 else ""
+        sense = parts[2] if len(parts) > 2 else ""
+        pos = parts[3] if len(parts) > 3 else ""
+        lvl = parts[4] if len(parts) > 4 else ""
         
-        k = (clean_key(word), sense)
+        word_with_ann = f"{word} {annotation}".strip()
+        k = (clean_key(word_with_ann), sense)
         if k not in cp_db:
-            print(f"L{lno}: Word {repr(word)} (Value: {repr(sense)}) missing in CP database!")
+            print(f"L{lno}: Word {repr(word)} (Annotation: {repr(annotation)}, Sense: {repr(sense)}) missing in CP database!")
             mismatches_count += 1
         else:
             cp_pos, cp_lvl, cp_lno, cp_raw = cp_db[k]
@@ -145,7 +174,7 @@ def main():
                 # (e.g. it/IT, may/May, and multiple number entries)
                 if clean_key(word) in ["it", "may", "number"]:
                     continue
-                print(f"L{lno}: Word {repr(word)} (Value: {repr(sense)}) mismatch!")
+                print(f"L{lno}: Word {repr(word)} (Annotation: {repr(annotation)}, Sense: {repr(sense)}) mismatch!")
                 print(f"  Target: POS={repr(pos)} Level={repr(lvl)}")
                 print(f"  CP    : POS={repr(cp_pos)} Level={repr(cp_lvl)}")
                 mismatches_count += 1

@@ -22,6 +22,30 @@ def clean_word_designations(w):
             break
     return w
 
+def extract_annotation_and_sense(word):
+    # First extract homonym digit
+    match = re.match(r'^([^(]*?)(\d+)(\s*\(.*\))?$', word)
+    if match:
+        prefix = match.group(1)
+        digit = match.group(2)
+        suffix = match.group(3) or ""
+        word_with_suffix = prefix.strip() + suffix
+        sense = digit
+    else:
+        word_with_suffix = word.strip()
+        sense = ""
+        
+    # Now extract parenthetical annotation
+    match_ann = re.search(r'\s+(\(.*\))$', word_with_suffix)
+    if match_ann:
+        annotation = match_ann.group(1).strip()
+        clean_word = word_with_suffix[:-len(match_ann.group(0))].strip()
+    else:
+        annotation = ""
+        clean_word = word_with_suffix
+        
+    return clean_word, annotation, sense
+
 def parse_f1(path):
     records = []
     with open(path, "r", encoding="utf-8") as f:
@@ -30,10 +54,14 @@ def parse_f1(path):
             if not line:
                 continue
             parts = line.split("\t")
+            if lno == 1 and parts[0].lower() == "word":
+                continue
             word = parts[0]
-            pos = parts[1]
-            level = parts[2] if len(parts) > 2 else ""
-            records.append((word, pos, level, lno))
+            annotation = parts[1] if len(parts) > 1 else ""
+            sense = parts[2] if len(parts) > 2 else ""
+            pos = parts[3] if len(parts) > 3 else ""
+            level = parts[4] if len(parts) > 4 else ""
+            records.append((word, annotation, sense, pos, level, lno))
     return records
 
 def parse_f2_line(line, pos_pattern):
@@ -87,7 +115,10 @@ def load_f2(path):
         for lno, line in enumerate(f, 1):
             parsed = parse_f2_line(line, pos_pattern)
             if parsed:
-                records.append((parsed["word"], parsed["pos"], parsed["level"], lno))
+                # Resolve name normalization and extract annotation/sense
+                w_norm = normalize_f2_name(parsed["word"])
+                w_clean, ann, sense = extract_annotation_and_sense(w_norm)
+                records.append((w_clean, ann, sense, parsed["pos"], parsed["level"], lno))
     return records
 
 def clean_key(w):
@@ -107,37 +138,43 @@ def normalize_f2_name(w):
     return w
 
 def main():
-    path1 = r"C:\Users\voothi\Desktop\20260715165539-oxford-5000-expanded.en.tsv"
-    path2 = r"C:\Users\voothi\Desktop\20260715165539-oxford-5000-expanded-copy-paste.en.tsv"
-    output_path = r"C:\Users\voothi\Desktop\20260715165539-oxford-5000-expanded-corrected.en.tsv"
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    repo_root = os.path.abspath(os.path.join(script_dir, ".."))
+    
+    path1 = os.path.join(repo_root, "20260715165539-oxford-5000-expanded.en.tsv")
+    path2 = os.path.join(repo_root, "tests", "fixtures", "20260715165539-oxford-5000-expanded-copy-paste.en.tsv")
+    output_path = os.path.join(repo_root, "tests", "fixtures", "20260715165539-oxford-5000-expanded-corrected.en.tsv")
 
-    print("Loading File 1...")
+    print(f"Loading File 1 from {path1}...")
     f1_records = parse_f1(path1)
-    print("Loading File 2...")
+    print(f"Loading File 2 from {path2}...")
     f2_records = load_f2(path2)
 
     db = {}
-    # Seed with File 1 records
-    for w, p, l, lno in f1_records:
-        k = clean_key(w)
+    # Seed with File 1 records using composite key
+    for w, ann, sense, p, l, lno in f1_records:
+        k = (clean_key(w), ann.lower(), sense)
         db[k] = {
             "word": w,
+            "annotation": ann,
+            "sense": sense,
             "pos": p,
             "level": l
         }
 
     # Merge with File 2 records
     new_words_count = 0
-    for w, p, l, lno in f2_records:
-        w_norm = normalize_f2_name(w)
-        k = clean_key(w_norm)
+    for w, ann, sense, p, l, lno in f2_records:
+        k = (clean_key(w), ann.lower(), sense)
         if k in db:
-            # Resolve missing level in File 1 (e.g. citizenship level empty, but C1 in File 2)
+            # Resolve missing level in File 1
             if db[k]["level"] == "" and l != "":
                 db[k]["level"] = l
         else:
             db[k] = {
-                "word": w_norm,
+                "word": w,
+                "annotation": ann,
+                "sense": sense,
                 "pos": p,
                 "level": l
             }
@@ -150,14 +187,15 @@ def main():
         w = item[1]["word"]
         w_clean = w.lower().replace("²", "").replace("'", "").replace("’", "").strip()
         w_clean = re.sub(r'\d+$', '', w_clean)
-        return w_clean
+        return (w_clean, item[1]["annotation"], item[1]["sense"])
 
     sorted_items = sorted(db.items(), key=sort_key)
 
     # Write output
     with open(output_path, "w", encoding="utf-8") as f:
+        f.write("Word\tAnnotation\tSense\tPart of Speech\tLevel\n")
         for k, info in sorted_items:
-            f.write(f"{info['word']}\t{info['pos']}\t{info['level']}\n")
+            f.write(f"{info['word']}\t{info['annotation']}\t{info['sense']}\t{info['pos']}\t{info['level']}\n")
 
     print(f"Successfully wrote {len(sorted_items)} sorted records to {output_path}")
 
