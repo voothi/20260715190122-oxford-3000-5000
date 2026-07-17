@@ -27,35 +27,65 @@ def load_lemma_frequency_index(file_path):
     return lemma_index
 
 def get_word_frequency_key(word, lemma_index):
-    # 1. Exact lookup
-    if word in lemma_index:
-        return (False, lemma_index[word], word.lower())
-    
-    # 2. Lowercase lookup
-    word_lower = word.lower()
-    if word_lower in lemma_index:
-        return (False, lemma_index[word_lower], word_lower)
+    # 1. Normalize punctuation for lookup
+    def get_variations(w):
+        vars_set = []
+        w_clean = w.strip()
+        vars_set.append(w_clean)
+        vars_set.append(w_clean.lower())
         
-    # 3. Handle slash or comma separated words
+        # Replace curly apostrophe with straight, and vice-versa
+        w_straight = w_clean.replace("’", "'")
+        vars_set.append(w_straight)
+        vars_set.append(w_straight.lower())
+        
+        # Remove apostrophes entirely
+        w_no_apo = w_clean.replace("’", "").replace("'", "")
+        vars_set.append(w_no_apo)
+        vars_set.append(w_no_apo.lower())
+        
+        seen = set()
+        res = []
+        for v in vars_set:
+            if v not in seen:
+                seen.add(v)
+                res.append(v)
+        return res
+
+    # Check variations of the whole word first
+    for var in get_variations(word):
+        if var in lemma_index:
+            return (False, lemma_index[var], word.lower())
+
+    # 2. Handle subparts by comma, slash, space, or hyphen
     parts = []
     if ',' in word:
         parts = [p.strip() for p in word.split(',') if p.strip()]
     elif '/' in word:
         parts = [p.strip() for p in word.split('/') if p.strip()]
-        
+    elif ' ' in word:
+        parts = [p.strip() for p in word.split(' ') if p.strip()]
+    elif '-' in word:
+        parts = [p.strip() for p in word.split('-') if p.strip()]
+
     if parts:
         found_indices = []
         for p in parts:
-            p_lower = p.lower()
-            if p in lemma_index:
-                found_indices.append(lemma_index[p])
-            elif p_lower in lemma_index:
-                found_indices.append(lemma_index[p_lower])
+            for var in get_variations(p):
+                if var in lemma_index:
+                    found_indices.append(lemma_index[var])
+                    break
         if found_indices:
-            return (False, min(found_indices), word_lower)
+            # Use min rank (highest freq) for alternatives (comma/slash),
+            # and max rank (lowest freq component) for phrases (space/hyphen).
+            if ',' in word or '/' in word:
+                val = min(found_indices)
+            else:
+                val = max(found_indices)
+            return (False, val, word.lower())
             
-    # 4. Fallback if not found
-    return (True, 0, word_lower)
+    # 3. Fallback if not found
+    return (True, 0, word.lower())
 
 def sort_tsv_by_frequency(tsv_path, lemma_index):
     if not os.path.exists(tsv_path):
