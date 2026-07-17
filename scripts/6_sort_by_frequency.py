@@ -39,8 +39,8 @@ def get_word_frequency_key(word, lemma_index):
         vars_set.append(w_straight)
         vars_set.append(w_straight.lower())
         
-        # Remove apostrophes entirely
-        w_no_apo = w_clean.replace("’", "").replace("'", "")
+        # Remove apostrophes and backticks entirely
+        w_no_apo = w_clean.replace("’", "").replace("'", "").replace("`", "")
         vars_set.append(w_no_apo)
         vars_set.append(w_no_apo.lower())
         
