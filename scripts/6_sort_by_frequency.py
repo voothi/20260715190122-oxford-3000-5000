@@ -164,8 +164,8 @@ def main():
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     
     tsv_files = [
-        os.path.join(project_root, "20260715160822-oxford-3000-by-frequency.en.tsv"),
-        os.path.join(project_root, "20260715165539-oxford-5000-expanded-by-frequency.en.tsv")
+        os.path.join(project_root, "20260715160822-oxford-3000-freq.en.tsv"),
+        os.path.join(project_root, "20260715165539-oxford-5000-expanded-freq.en.tsv")
     ]
     
     success = True

@@ -56,29 +56,24 @@ Below are the exact historical prompts used during the curation process:
 ## Project Structure
 ```text
 U:\voothi\20260715190122-oxford-3000-5000\
-├── scripts/                               # Core pipeline scripts
-│   ├── 1_create_corrected_oxford_5000.py  # Merges and resolves missing A-words, outputs 5-column TSV
-│   ├── 2_clean_copy_paste_words.py        # Cleans raw copy-paste to word-only lists
-│   ├── 3_move_homonym_digits.py           # Extracts annotations & homonym digits to separate columns
-│   ├── 4_apply_pos_level_pattern.py       # Rebuilds target TSVs under multi-level pattern (5-column format)
-│   └── 5_verify_pos_level.py              # Validates column alignment with copy-paste (5-column format)
-├── tests/                                 # Unit testing suite
-│   ├── test_scripts.py                    # Standard unittest test suite
-│   └── fixtures/                          # Archival data and test fixtures
-│       ├── 20260715160822-oxford-3000-copy-paste.en.tsv
-│       ├── 20260715160822-oxford-3000-copy-paste-wo.en.tsv
-│       ├── 20260715160822-oxford-3000-corrected.tsv
-│       ├── 20260715165539-oxford-5000-expanded-copy-paste.en.tsv
-│       ├── 20260715165539-oxford-5000-expanded-copy-paste-wo.en.tsv
-│       └── 20260715165539-oxford-5000-expanded-corrected.en.tsv
-├── .gitattributes                          # Git attributes configuration
-├── .gitignore                              # Git ignore configuration
-├── 20260715160822-oxford-3000.en.pdf       # Oxford 3000 source PDF
-├── 20260715160822-oxford-3000.en.tsv       # Oxford 3000 clean target TSV (5-column format)
-├── 20260715165539-oxford-5000.en.pdf       # Oxford 5000 source PDF
-├── 20260715165539-oxford-5000-expanded.en.tsv # Oxford 5000 clean target TSV (5-column format)
-├── LICENSE                                # MIT license
-└── README.md                              # Project documentation
+├── scripts/
+├── tests/
+├── .gitattributes
+├── .gitignore
+├── 20260715160822-oxford-3000-freq-ru.en.pdf
+├── 20260715160822-oxford-3000-freq-ru.en.tsv
+├── 20260715160822-oxford-3000-freq.en.pdf
+├── 20260715160822-oxford-3000-freq.en.tsv
+├── 20260715160822-oxford-3000.en.pdf
+├── 20260715160822-oxford-3000.en.tsv
+├── 20260715165539-oxford-5000-expanded-freq-ru.en.pdf
+├── 20260715165539-oxford-5000-expanded-freq-ru.en.tsv
+├── 20260715165539-oxford-5000-expanded-freq.en.pdf
+├── 20260715165539-oxford-5000-expanded-freq.en.tsv
+├── 20260715165539-oxford-5000-expanded.en.pdf
+├── 20260715165539-oxford-5000-expanded.en.tsv
+├── LICENSE
+└── README.md
 ```
 
 [Return to Top](#oxford-30005000-wordlist-curation--caching-pipeline)
