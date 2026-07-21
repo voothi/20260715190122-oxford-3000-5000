@@ -152,3 +152,11 @@ python U:\voothi\20260715190122-oxford-3000-5000\scripts\5_verify_pos_level.py
 MIT License. See `LICENSE` for details.
 
 [Return to Top](#oxford-30005000-wordlist-curation--caching-pipeline)
+
+## Generating PDF from TSV
+
+You can provide the AI with the TSV file and use the following prompt to trigger the exact same PDF generation process:
+
+> **Prompt:** "Please read the attached TSV file containing the dictionary list. Using your Python execution environment, generate an HTML file and convert it to a 3-column A4 PDF using `pandas` and `weasyprint`. Format the 'Word' (or 'Annotation') in bold black, the 'Part of Speech' and 'Level' in grey italics, and append the 'Russian' translation from the last column in blue. Include page numbers and copyright text at the bottom. Do not let individual entries break across pages or columns."
+
+There is also a Python script `scripts/tsv_to_pdf.py` available if you want to run this locally in your own environment.
