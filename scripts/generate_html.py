@@ -1,15 +1,21 @@
+# scripts/generate_html.py
 import pandas as pd
 import html
+import argparse
+import sys
 
-# Re-read the base German TSV file requested by the user
-tsv_filename = '20260716200932-goethe-german-5000.de.tsv'
-df = pd.read_csv(tsv_filename, sep='\t')
-print("Shape of original dataset:", df.shape)
+def generate_html(input_tsv, output_html, doc_title, doc_subtitle):
+    try:
+        df = pd.read_csv(input_tsv, sep='\t')
+        print(f"Shape of dataset '{input_tsv}':", df.shape)
+    except Exception as e:
+        print(f"Error reading file: {e}")
+        sys.exit(1)
 
-html_filename = 'goethe_german_5000.html'
+    # Auto-detect if the Russian translation column exists
+    has_russian = 'Russian' in df.columns
 
-html_content = f"""
-<!DOCTYPE html>
+    html_content = f"""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
@@ -18,7 +24,7 @@ html_content = f"""
         size: A4;
         margin: 15mm 15mm 15mm 15mm;
         @bottom-left {{
-            content: "© Goethe-Institut";
+            content: "© Oxford University Press";
             font-size: 7pt;
             color: #666;
             font-family: "DejaVu Sans", "Liberation Sans", "Helvetica Neue", Arial, sans-serif;
@@ -92,33 +98,59 @@ html_content = f"""
 </head>
 <body>
     <div class="header">
-        <div class="title">Goethe German 5000</div>
-        <div class="subtitle">The Goethe German 5000 is a core word list for learners of German, organized by frequency, from A1 to C1 level.</div>
+        <div class="title">{html.escape(doc_title)}</div>
+        <div class="subtitle">{html.escape(doc_subtitle)}</div>
         <div class="divider"></div>
     </div>
     <div class="content">
 """
 
-count = 0
-for _, row in df.iterrows():
-    word = str(row['Annotation']) if pd.notna(row['Annotation']) else str(row['Word']) if pd.notna(row['Word']) else ""
-    pos = str(row['Part of Speech']) if pd.notna(row['Part of Speech']) else ""
-    lvl = str(row['Level']) if pd.notna(row['Level']) else ""
-    
-    word_safe = html.escape(word)
-    pos_safe = html.escape(pos)
-    lvl_safe = html.escape(lvl)
-    
-    html_content += f'<div class="entry"><span class="word">{word_safe}</span><span class="pos">{pos_safe}</span><span class="level">{lvl_safe}</span></div>\n'
-    count += 1
+    count = 0
+    for _, row in df.iterrows():
+        # Prefer Annotation over Word if available
+        if 'Annotation' in row and pd.notna(row['Annotation']):
+            word = str(row['Annotation'])
+        elif 'Word' in row and pd.notna(row['Word']):
+            word = str(row['Word'])
+        else:
+            word = ""
+            
+        pos = str(row['Part of Speech']) if 'Part of Speech' in row and pd.notna(row['Part of Speech']) else ""
+        lvl = str(row['Level']) if 'Level' in row and pd.notna(row['Level']) else ""
+        
+        word_safe = html.escape(word)
+        pos_safe = html.escape(pos)
+        lvl_safe = html.escape(lvl)
+        
+        entry_html = f'<span class="word">{word_safe}</span> <span class="pos">{pos_safe}</span> <span class="level">{lvl_safe}</span>'
+        
+        # Append translation only if applicable
+        if has_russian:
+            trans = str(row['Russian']) if pd.notna(row['Russian']) else ""
+            if trans:
+                entry_html += f' <span class="trans">{html.escape(trans)}</span>'
+        
+        html_content += f'        <div class="entry">{entry_html}</div>\n'
+        count += 1
 
-html_content += """
-    </div>
+    html_content += """    </div>
 </body>
 </html>
 """
 
-with open(html_filename, "w", encoding="utf-8") as f:
-    f.write(html_content)
+    with open(output_html, "w", encoding="utf-8") as f:
+        f.write(html_content)
 
-print(f"HTML Generated with {count} entries.")
+    print(f"HTML generated successfully with {count} entries -> {output_html}")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Generate Oxford HTML dictionary from TSV.")
+    parser.add_argument("input_tsv", help="Input TSV file path")
+    parser.add_argument("output_html", help="Output HTML file path")
+    parser.add_argument("--title", default="Oxford 3000", help="Title of the document")
+    parser.add_argument("--subtitle", 
+                        default="The Oxford 3000 is a core word list for learners of English.",
+                        help="Subtitle of the document")
+    
+    args = parser.parse_args()
+    generate_html(args.input_tsv, args.output_html, args.title, args.subtitle)
