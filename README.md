@@ -60,18 +60,24 @@ U:\voothi\20260715190122-oxford-3000-5000\
 ├── tests/
 ├── .gitattributes
 ├── .gitignore
-├── 20260715160822-oxford-3000-freq-ru.en.pdf
-├── 20260715160822-oxford-3000-freq-ru.en.tsv
-├── 20260715160822-oxford-3000-freq.en.pdf
-├── 20260715160822-oxford-3000-freq.en.tsv
-├── 20260715160822-oxford-3000.en.pdf
-├── 20260715160822-oxford-3000.en.tsv
-├── 20260715165539-oxford-5000-expanded-freq-ru.en.pdf
-├── 20260715165539-oxford-5000-expanded-freq-ru.en.tsv
-├── 20260715165539-oxford-5000-expanded-freq.en.pdf
-├── 20260715165539-oxford-5000-expanded-freq.en.tsv
-├── 20260715165539-oxford-5000-expanded.en.pdf
-├── 20260715165539-oxford-5000-expanded.en.tsv
+├── 20260715160822-oxford-3000-freq-ru.en.html            # Oxford 3000 Frequency-ordered HTML (with Russian)
+├── 20260715160822-oxford-3000-freq-ru.en.pdf             # Oxford 3000 Frequency-ordered PDF (with Russian)
+├── 20260715160822-oxford-3000-freq-ru.en.tsv             # Oxford 3000 Frequency-ordered TSV (with Russian)
+├── 20260715160822-oxford-3000-freq.en.html               # Oxford 3000 Frequency-ordered HTML
+├── 20260715160822-oxford-3000-freq.en.pdf                # Oxford 3000 Frequency-ordered PDF
+├── 20260715160822-oxford-3000-freq.en.tsv                # Oxford 3000 Frequency-ordered TSV
+├── 20260715160822-oxford-3000.en.html                    # Oxford 3000 Alphabetical HTML
+├── 20260715160822-oxford-3000.en.pdf                     # Oxford 3000 Alphabetical PDF
+├── 20260715160822-oxford-3000.en.tsv                     # Oxford 3000 Alphabetical TSV
+├── 20260715165539-oxford-5000-expanded-freq-ru.en.html   # Oxford 5000 Frequency-ordered HTML (with Russian)
+├── 20260715165539-oxford-5000-expanded-freq-ru.en.pdf    # Oxford 5000 Frequency-ordered PDF (with Russian)
+├── 20260715165539-oxford-5000-expanded-freq-ru.en.tsv    # Oxford 5000 Frequency-ordered TSV (with Russian)
+├── 20260715165539-oxford-5000-expanded-freq.en.html      # Oxford 5000 Frequency-ordered HTML
+├── 20260715165539-oxford-5000-expanded-freq.en.pdf       # Oxford 5000 Frequency-ordered PDF
+├── 20260715165539-oxford-5000-expanded-freq.en.tsv       # Oxford 5000 Frequency-ordered TSV
+├── 20260715165539-oxford-5000-expanded.en.html           # Oxford 5000 Alphabetical HTML
+├── 20260715165539-oxford-5000-expanded.en.pdf            # Oxford 5000 Alphabetical PDF
+├── 20260715165539-oxford-5000-expanded.en.tsv            # Oxford 5000 Alphabetical TSV
 ├── LICENSE
 └── README.md
 ```
